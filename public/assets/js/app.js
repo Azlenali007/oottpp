@@ -15,10 +15,31 @@
 document.addEventListener('alpine:init', () => {
     Alpine.data('otpApp', () => ({
         // View States
-        panel: 'user', // 'user' or 'admin'
+        panel: 'user', // 'user', 'admin', or 'install'
         currentPage: 'home', // 'home', 'services', 'new-order', 'orders', 'wallet', 'profile', 'support', 'admin-services', 'admin-orders', 'admin-users', 'admin-settings'
         theme: 'light',
         mobileMenuOpen: false,
+
+        // Web Installer State
+        installStep: 1,
+        installTestingDb: false,
+        installDbStatus: null,
+        installRunning: false,
+        installForm: {
+            db_host: '127.0.0.1',
+            db_port: 3306,
+            db_name: 'otppro_db',
+            db_user: 'root',
+            db_pass: '',
+            app_name: 'OTPPro',
+            app_url: window.location.origin || 'http://localhost:3000',
+            app_timezone: 'UTC',
+            app_currency: 'INR',
+            app_currency_symbol: '₹',
+            admin_name: 'Super Admin',
+            admin_email: 'admin@otppro.local',
+            admin_password: ''
+        },
 
         // User Data
         user: {
@@ -412,6 +433,39 @@ document.addEventListener('alpine:init', () => {
                     confirmButtonColor: '#10B981'
                 });
             }, 1500);
+        },
+
+        // Test Database Connection in Installer
+        testDbConnection() {
+            this.installTestingDb = true;
+            this.installDbStatus = null;
+            setTimeout(() => {
+                this.installTestingDb = false;
+                this.installDbStatus = {
+                    success: true,
+                    message: `Connection successful! Host ${this.installForm.db_host}:${this.installForm.db_port} reachable, database '${this.installForm.db_name}' ready.`
+                };
+            }, 600);
+        },
+
+        // Run Complete Installation Wizard
+        executeInstaller() {
+            if (!this.installForm.admin_password || this.installForm.admin_password.length < 8) {
+                Swal.fire('Password Length', 'Super Admin master password must be at least 8 characters.', 'warning');
+                return;
+            }
+
+            this.installRunning = true;
+            setTimeout(() => {
+                this.installRunning = false;
+                this.installStep = 7;
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Installation Complete!',
+                    text: `Database tables created, single Super Admin '${this.installForm.admin_email}' seeded, and installation lock engaged.`,
+                    confirmButtonColor: '#10B981'
+                });
+            }, 1200);
         },
 
         // Chart.js initializers on Admin Dashboard

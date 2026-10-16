@@ -36,6 +36,12 @@ Router::get('/register', [AuthController::class, 'showRegister']);
 Router::post('/register', [AuthController::class, 'register'], [CsrfMiddleware::class]);
 Router::get('/logout', [AuthController::class, 'logout']);
 
+// Web-Based Installer Routes
+Router::get('/install', [\App\Controllers\InstallController::class, 'index']);
+Router::get('/install/requirements', [\App\Controllers\InstallController::class, 'checkRequirements']);
+Router::post('/install/test-db', [\App\Controllers\InstallController::class, 'testDatabase'], [CsrfMiddleware::class]);
+Router::post('/install/run', [\App\Controllers\InstallController::class, 'runInstallation'], [CsrfMiddleware::class]);
+
 // Protected User Panel Routes
 Router::group(['middleware' => [AuthMiddleware::class]], function () {
     Router::get('/dashboard', [DashboardController::class, 'index']);
