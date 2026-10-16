@@ -40,4 +40,9 @@ class WalletController {
             'csrf_token' => Session::getCsrfToken(),
         ], 'layouts/user');
     }
+
+    public function payments(Request $request): void {
+        $this->index($request);
+    }
 }
+

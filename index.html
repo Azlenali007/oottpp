@@ -19,16 +19,17 @@
         extend: {
           colors: {
             brand: {
-              50: '#eff6ff',
-              100: '#dbeafe',
-              500: '#3b82f6',
-              600: '#2563eb',
-              700: '#1d4ed8',
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
             }
           }
         }
       }
     }
+
   </script>
 
   <!-- SweetAlert2 -->
@@ -50,20 +51,20 @@
   <!-- ========================================================================= -->
   <!-- TOP PLATFORM SWITCHER BANNER -->
   <!-- ========================================================================= -->
-  <div class="bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-800 text-white px-4 py-2 text-xs font-medium flex items-center justify-between shadow-sm">
+  <div class="bg-gradient-to-r from-emerald-950 via-slate-900 to-teal-950 text-white px-4 py-2 text-xs font-medium flex items-center justify-between shadow-sm border-b border-emerald-900/60">
     <div class="flex items-center space-x-2">
-      <span class="bg-white/20 text-white px-2 py-0.5 rounded font-mono tracking-wide uppercase">OTPPro Production Node</span>
-      <span class="hidden sm:inline">Backend: Core PHP 8.2+ PDO &bull; MySQL 8+ Engine &bull; WebSocket / Polling Active</span>
+      <span class="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded font-mono tracking-wide uppercase">OTPPro Production Node</span>
+      <span class="hidden sm:inline text-slate-300">Backend: Core PHP 8.2+ PDO &bull; MySQL 8+ Engine &bull; WebSocket / Polling Active</span>
     </div>
     <div class="flex items-center space-x-2">
-      <button @click="panel = (panel === 'install' ? 'user' : 'install'); if(panel === 'install') installStep = 1" 
-              :class="panel === 'install' ? 'bg-emerald-500 text-white shadow' : 'bg-white/20 hover:bg-white/30 text-white'"
+      <button @click="setPage(panel === 'install' ? 'home' : 'install')" 
+              :class="panel === 'install' ? 'bg-emerald-500 text-slate-950 font-bold shadow' : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700'"
               class="px-3 py-1 rounded-full font-semibold transition flex items-center space-x-1.5 shadow-xs text-xs">
         <span x-text="panel === 'install' ? '✕ Exit Installer' : '🛠️ Web Installer'"></span>
       </button>
-      <button @click="panel = (panel === 'user' ? 'admin' : 'user'); currentPage = (panel === 'user' ? 'home' : 'admin-dashboard')" 
-              class="bg-white text-blue-800 hover:bg-blue-50 px-3 py-1 rounded-full font-semibold transition flex items-center space-x-1.5 shadow">
-        <span x-text="panel === 'admin' ? '👤 Switch to User Panel' : '🛡️ Super Admin Panel'"></span>
+      <button @click="setPage(panel === 'admin' ? 'home' : 'admin-dashboard')" 
+              class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-3 py-1 rounded-full transition flex items-center space-x-1.5 shadow">
+        <span x-text="panel === 'admin' ? '👤 Switch to User Panel' : '👑 Super Admin Panel'"></span>
       </button>
     </div>
   </div>
@@ -73,60 +74,73 @@
   <!-- ========================================================================= -->
   <div x-show="panel === 'user'" x-cloak class="flex min-h-[calc(100vh-36px)]">
     <!-- User Sidebar -->
-    <aside class="w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col justify-between shrink-0 hidden md:flex">
+    <aside class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between shrink-0 hidden md:flex">
       <div>
         <!-- Logo -->
-        <div class="p-6 flex items-center space-x-3 border-b border-slate-100 dark:border-slate-700">
-          <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-xl shadow-md shadow-blue-500/20">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+        <div class="p-6 flex items-center space-x-3 border-b border-slate-800">
+          <div class="w-10 h-10 rounded-xl bg-emerald-500 text-slate-950 flex items-center justify-center font-black text-xl shadow-md shadow-emerald-500/20">
+            ⚡
           </div>
           <div>
-            <span class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">OTP<span class="text-blue-600">Pro</span></span>
-            <div class="text-[10px] text-slate-400 font-medium">Verification Platform</div>
+            <span class="text-xl font-black tracking-tight text-white">OTP<span class="text-emerald-400">Pro</span></span>
+            <div class="text-[10px] text-emerald-500/80 font-bold uppercase tracking-wider">SMS Verification</div>
           </div>
         </div>
 
-        <!-- Navigation Links (Matching reference screenshot) -->
+        <!-- Navigation Links (Matching green theme) -->
         <nav class="p-4 space-y-1 text-sm font-medium">
-          <button @click="setPage('home')" :class="currentPage === 'home' ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50'" class="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl transition">
+          <button @click="setPage('home')" :class="currentPage === 'home' ? 'bg-emerald-500 text-slate-950 font-bold shadow-md shadow-emerald-500/20' : 'text-slate-300 hover:bg-slate-800 hover:text-white'" class="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl transition">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
             <span>Home</span>
           </button>
 
-          <button @click="setPage('services')" :class="currentPage === 'services' ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50'" class="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl transition">
+          <button @click="setPage('services')" :class="currentPage === 'services' ? 'bg-emerald-500 text-slate-950 font-bold shadow-md shadow-emerald-500/20' : 'text-slate-300 hover:bg-slate-800 hover:text-white'" class="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl transition">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
             <span>Services</span>
           </button>
 
-          <button @click="setPage('new-order')" :class="currentPage === 'new-order' ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50'" class="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl transition">
+          <button @click="setPage('new-order')" :class="currentPage === 'new-order' ? 'bg-emerald-500 text-slate-950 font-bold shadow-md shadow-emerald-500/20' : 'text-slate-300 hover:bg-slate-800 hover:text-white'" class="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl transition">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
             <span>New Order</span>
           </button>
 
-          <button @click="setPage('orders')" :class="currentPage === 'orders' ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50'" class="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl transition">
+          <button @click="setPage('orders')" :class="currentPage === 'orders' ? 'bg-emerald-500 text-slate-950 font-bold shadow-md shadow-emerald-500/20' : 'text-slate-300 hover:bg-slate-800 hover:text-white'" class="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl transition">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
             <span>My Orders</span>
           </button>
 
-          <button @click="setPage('wallet')" :class="currentPage === 'wallet' ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50'" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition">
+          <button @click="setPage('wallet')" :class="currentPage === 'wallet' ? 'bg-emerald-500 text-slate-950 font-bold shadow-md shadow-emerald-500/20' : 'text-slate-300 hover:bg-slate-800 hover:text-white'" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition">
             <div class="flex items-center space-x-3">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
               <span>Wallet</span>
             </div>
-            <span class="w-5 h-5 rounded-full bg-red-500 text-white text-[11px] font-bold flex items-center justify-center">3</span>
+            <span class="px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800 text-[11px] font-bold">₹485</span>
           </button>
 
-          <button @click="setPage('profile')" :class="currentPage === 'profile' ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50'" class="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl transition">
+          <button @click="setPage('profile')" :class="currentPage === 'profile' ? 'bg-emerald-500 text-slate-950 font-bold shadow-md shadow-emerald-500/20' : 'text-slate-300 hover:bg-slate-800 hover:text-white'" class="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl transition">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
             <span>Profile</span>
           </button>
 
-          <button @click="setPage('support')" :class="currentPage === 'support' ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50'" class="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl transition">
+          <button @click="setPage('support')" :class="currentPage === 'support' ? 'bg-emerald-500 text-slate-950 font-bold shadow-md shadow-emerald-500/20' : 'text-slate-300 hover:bg-slate-800 hover:text-white'" class="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl transition">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             <span>Support</span>
           </button>
+
+          <div class="pt-3 border-t border-slate-800 space-y-1">
+            <div class="text-[10px] font-bold text-slate-500 uppercase px-3 py-1">Account Routes</div>
+            <button @click="setPage('login')" :class="currentPage === 'login' ? 'bg-emerald-500 text-slate-950 font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white'" class="w-full flex items-center space-x-3 px-3.5 py-2 rounded-xl transition text-xs">
+              <span>🔑</span>
+              <span>Sign In (/login)</span>
+            </button>
+            <button @click="setPage('register')" :class="currentPage === 'register' ? 'bg-emerald-500 text-slate-950 font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white'" class="w-full flex items-center space-x-3 px-3.5 py-2 rounded-xl transition text-xs">
+              <span>✨</span>
+              <span>Register (/register)</span>
+            </button>
+          </div>
         </nav>
       </div>
+
 
       <!-- Theme Switcher Pill -->
       <div class="p-4 border-t border-slate-100 dark:border-slate-700">
@@ -849,8 +863,80 @@
           </div>
         </div>
       </section>
+
+      <!-- =================================================================== -->
+      <!-- VIEW: USER SIGN IN (/login) -->
+      <!-- =================================================================== -->
+      <section x-show="currentPage === 'login'" class="p-6 flex items-center justify-center min-h-[calc(100vh-120px)]">
+        <div class="w-full max-w-md bg-slate-850 p-8 rounded-3xl border border-slate-800 shadow-2xl space-y-6">
+          <div class="text-center">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center text-xl font-bold mx-auto mb-3">
+              🔑
+            </div>
+            <h1 class="text-2xl font-black text-white">Sign In to OTPPro</h1>
+            <p class="text-xs text-slate-400 mt-1">Direct access to your phone numbers &amp; active activations</p>
+          </div>
+
+          <form @submit.prevent="submitLogin()" class="space-y-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-300 mb-1">Email Address</label>
+              <input type="email" x-model="loginForm.email" required placeholder="you@example.com" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-300 mb-1">Password</label>
+              <input type="password" x-model="loginForm.password" required placeholder="••••••••" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500">
+            </div>
+            <button type="submit" :disabled="loginForm.loading" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-3 rounded-xl shadow-lg shadow-emerald-500/20 text-xs transition duration-150">
+              <span x-text="loginForm.loading ? 'Authenticating...' : 'Sign In &rarr;'"></span>
+            </button>
+          </form>
+
+          <div class="pt-4 border-t border-slate-800 text-center text-xs text-slate-400 space-y-2">
+            <div>Don't have an account? <button @click="setPage('register')" class="text-emerald-400 font-bold hover:underline">Create an account</button></div>
+            <div>Operator? <button @click="setPage('admin-dashboard')" class="text-slate-500 hover:text-slate-300">Super Admin Portal</button></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================================== -->
+      <!-- VIEW: USER REGISTRATION (/register) -->
+      <!-- =================================================================== -->
+      <section x-show="currentPage === 'register'" class="p-6 flex items-center justify-center min-h-[calc(100vh-120px)]">
+        <div class="w-full max-w-md bg-slate-850 p-8 rounded-3xl border border-slate-800 shadow-2xl space-y-6">
+          <div class="text-center">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center text-xl font-bold mx-auto mb-3">
+              ✨
+            </div>
+            <h1 class="text-2xl font-black text-white">Create Your Account</h1>
+            <p class="text-xs text-slate-400 mt-1">Get instant access to virtual SMS numbers worldwide</p>
+          </div>
+
+          <form @submit.prevent="submitRegister()" class="space-y-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-300 mb-1">Full Name</label>
+              <input type="text" x-model="registerForm.name" required placeholder="Alex Smith" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-300 mb-1">Email Address</label>
+              <input type="email" x-model="registerForm.email" required placeholder="you@example.com" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-300 mb-1">Password (min 8 characters)</label>
+              <input type="password" x-model="registerForm.password" required minlength="8" placeholder="••••••••" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500">
+            </div>
+            <button type="submit" :disabled="registerForm.loading" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-3 rounded-xl shadow-lg shadow-emerald-500/20 text-xs transition duration-150">
+              <span x-text="registerForm.loading ? 'Creating Account...' : 'Create Account &rarr;'"></span>
+            </button>
+          </form>
+
+          <div class="pt-4 border-t border-slate-800 text-center text-xs text-slate-400">
+            Already have an account? <button @click="setPage('login')" class="text-emerald-400 font-bold hover:underline">Sign in here</button>
+          </div>
+        </div>
+      </section>
     </main>
   </div>
+
 
   <!-- ========================================================================= -->
   <!-- SUPER ADMIN PANEL LAYOUT (Bottom Row in Screenshot) -->

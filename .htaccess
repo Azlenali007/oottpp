@@ -1,0 +1,40 @@
+# ==============================================================================
+# OTPPro Platform - Root Directory Apache Rewriting
+# For deployments where Apache DocumentRoot points to project root instead of /public
+# ==============================================================================
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # Prevent directory listing
+    Options -Indexes
+
+    # Pass through existing static files in public directory
+    RewriteCond %{REQUEST_URI} ^/public/
+    RewriteRule ^ - [L]
+
+    # Map static assets from /assets/... to /public/assets/...
+    RewriteCond %{DOCUMENT_ROOT}/public/assets/$1 -f
+    RewriteRule ^assets/(.*)$ public/assets/$1 [L,QSA]
+
+    # If requesting /install or /install/
+    RewriteRule ^install/?$ public/install/index.php [L,QSA]
+    RewriteRule ^install/(.*)$ public/install/$1 [L,QSA]
+
+    # If the file exists in /public, serve it directly
+    RewriteCond %{DOCUMENT_ROOT}/public/$1 -f
+    RewriteRule ^(.*)$ public/$1 [L,QSA]
+
+    # Route all other application requests to public/index.php
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ public/index.php [L,QSA]
+</IfModule>
+
+# Security Headers
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>

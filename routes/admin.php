@@ -15,9 +15,13 @@ use App\Controllers\Admin\AdminSettingController;
 use App\Middleware\AdminMiddleware;
 use App\Middleware\CsrfMiddleware;
 
-// Public Admin Login
+// Public Admin Login & Entry
+Router::get('/admin', function () {
+    (new \App\Core\Response())->redirect('/admin/dashboard');
+});
 Router::get('/admin/login', [AuthController::class, 'showAdminLogin']);
 Router::post('/admin/login', [AuthController::class, 'adminLogin'], [CsrfMiddleware::class]);
+Router::get('/admin/logout', [AuthController::class, 'logout']);
 
 // Protected Super Admin Panel
 Router::group(['prefix' => '/admin', 'middleware' => [AdminMiddleware::class]], function () {

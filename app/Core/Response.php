@@ -41,8 +41,11 @@ class Response {
         $this->setStatusCode($statusCode);
         $this->setHeader('Location', $url);
         $this->send();
-        exit(0);
+        if (!defined('RUNNING_CLI_TEST')) {
+            exit(0);
+        }
     }
+
 
     public function send(): void {
         if (!headers_sent()) {

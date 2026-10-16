@@ -1,0 +1,56 @@
+# ==============================================================================
+# OTPPro Platform - Nginx Server Configuration Guide
+# Place this inside your /etc/nginx/sites-available/your-domain.conf
+# ==============================================================================
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name yourdomain.com www.yourdomain.com;
+
+    # Point DocumentRoot to the public/ subdirectory
+    root /var/www/otppro/public;
+    index index.php index.html;
+
+    # Global Character Set
+    charset utf-8;
+
+    # Security Headers
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    # Route all requests through Core PHP front controller
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    # Dedicated block for /install wizard
+    location /install {
+        try_files $uri $uri/ /install/index.php?$query_string;
+    }
+
+    # Pass PHP scripts to FastCGI server (PHP 8.2 or 8.3 FPM)
+    location ~ \.php$ {
+        fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
+        # For PHP 8.2, use: unix:/var/run/php/php8.2-fpm.sock;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        include fastcgi_params;
+        fastcgi_buffer_size 16k;
+        fastcgi_buffers 4 16k;
+        fastcgi_read_timeout 300;
+    }
+
+    # Deny direct access to hidden files and internal directories
+    location ~ /\.(?!well-known).* {
+        deny all;
+    }
+
+    # Optimize static asset delivery
+    location ~* \.(css|js|jpg|jpeg|gif|png|ico|svg|woff|woff2|ttf|eot)$ {
+        expires 30d;
+        add_header Cache-Control "public, no-transform";
+    }
+}

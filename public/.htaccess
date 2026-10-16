@@ -1,15 +1,28 @@
-# Apache URL Rewriting for Core PHP Front Controller
+# ==============================================================================
+# OTPPro Platform - Public Web Root Apache Configuration
+# ==============================================================================
+DirectoryIndex index.php index.html
+
 <IfModule mod_rewrite.c>
     RewriteEngine On
+    RewriteBase /
 
     # Prevent directory indexing
-    Options -Indexes
+    Options -Indexes -MultiViews
 
-    # Serve existing static files and directories directly
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
+    # Pass existing files directly
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^ - [L]
 
-    # Route all other requests to index.php
+    # Handle /install and /install/
+    RewriteRule ^install/?$ install/index.php [L,QSA]
+    RewriteRule ^install/(.*)$ install/$1 [L,QSA]
+
+    # Pass other existing directories
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Route all other URLs to the Front Controller
     RewriteRule ^(.*)$ index.php [L,QSA]
 </IfModule>
 

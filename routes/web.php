@@ -18,7 +18,7 @@ use App\Controllers\SupportController;
 use App\Middleware\AuthMiddleware;
 use App\Middleware\CsrfMiddleware;
 
-// Public Root
+// Public Root Landing Page
 Router::get('/', function () {
     Session::start();
     $resp = new Response();
@@ -26,7 +26,18 @@ Router::get('/', function () {
         $resp->redirect(Session::get('user_role') === 'super_admin' ? '/admin/dashboard' : '/dashboard');
         return;
     }
-    $resp->redirect('/login');
+
+    try {
+        $services = \App\Services\PricingService::getActiveServicesWithPrices();
+    } catch (\Throwable) {
+        $services = [];
+    }
+
+    echo \App\Core\View::render('home/index', [
+        'title' => 'OTPPro - Instant SMS Verification & Temporary Numbers',
+        'services' => $services,
+        'csrf_token' => Session::getCsrfToken(),
+    ], 'layouts/main');
 });
 
 // Authentication Routes
@@ -49,6 +60,8 @@ Router::group(['middleware' => [AuthMiddleware::class]], function () {
     Router::get('/orders/new', [OrderController::class, 'showNewOrder']);
     Router::get('/orders', [OrderController::class, 'index']);
     Router::get('/wallet', [WalletController::class, 'index']);
+    Router::get('/payments', [WalletController::class, 'payments']);
     Router::get('/profile', [ProfileController::class, 'index']);
     Router::get('/support', [SupportController::class, 'index']);
 });
+

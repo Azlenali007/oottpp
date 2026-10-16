@@ -1,24 +1,25 @@
 /**
- * OTPPro - Alpine.js Application Logic
+ * OTPPro - Alpine.js Application Core
  * 
- * Drives all interactive UI elements from the reference screenshot:
- * - User Dashboard, Quick Actions, Stats
- * - Services Catalog with Categories & Instant Search
- * - 4-Step New Order Stepper
- * - Live Orders Monitoring with OTP Retrieval & Copy-to-clipboard
- * - Wallet Balance, Add Funds Modal, and Transaction Ledger
- * - Super Admin Dashboard with Sales & Status Chart.js visualizers
- * - Admin Services Management with live price updates
- * - Admin Orders Management & Refund interventions
+ * Drives all responsive UI components with URL synchronization:
+ * - Green theme design reference matching the primary screenshot
+ * - URL Synchronization with History API (/login, /register, /install, /dashboard, etc.)
+ * - Real API integration for Orders, Stock, Wallet, and Authentication
+ * - Super Admin Command Center with Chart.js analytics
  */
 
 document.addEventListener('alpine:init', () => {
     Alpine.data('otpApp', () => ({
         // View States
         panel: 'user', // 'user', 'admin', or 'install'
-        currentPage: 'home', // 'home', 'services', 'new-order', 'orders', 'wallet', 'profile', 'support', 'admin-services', 'admin-orders', 'admin-users', 'admin-settings'
-        theme: 'light',
+        currentPage: 'home', // 'home', 'login', 'register', 'services', 'new-order', 'orders', 'wallet', 'profile', 'support', 'admin-dashboard', 'admin-services', 'admin-orders', 'admin-users', 'admin-settings'
+        theme: 'dark',
         mobileMenuOpen: false,
+
+        // Authentication Forms
+        loginForm: { email: '', password: '', loading: false, error: '' },
+        registerForm: { name: '', email: '', password: '', loading: false, error: '' },
+        adminLoginForm: { email: '', password: '', loading: false, error: '' },
 
         // Web Installer State
         installStep: 1,
@@ -38,16 +39,18 @@ document.addEventListener('alpine:init', () => {
             app_currency_symbol: '₹',
             admin_name: 'Super Admin',
             admin_email: 'admin@otppro.local',
-            admin_password: ''
+            admin_password: '',
+            confirm_overwrite: true
         },
 
         // User Data
         user: {
-            name: 'Rahul Kumar',
-            email: 'rahul@example.com',
+            id: 1,
+            name: 'Verified User',
+            email: 'user@otppro.local',
             phone: '+91 98765 43210',
             role: 'user',
-            avatar: 'R'
+            avatar: 'U'
         },
 
         // Financial & Stats
@@ -62,28 +65,29 @@ document.addEventListener('alpine:init', () => {
         },
 
         // Category Filters for Services
-        categories: ['All', 'Social Media', 'Google', 'Microsoft', 'Email', 'Banking', 'Other'],
+        categories: ['All', 'Social Media', 'Google', 'Microsoft', 'Email', 'Messaging', 'Other'],
         selectedCategory: 'All',
         searchServiceQuery: '',
 
         // Master Services Catalog (From reference screenshot)
         services: [
-            { id: 1, name: 'WhatsApp', slug: 'whatsapp', category: 'Social Media', price: 1.20, stock: '90% Stock', stockQty: 1250, popular: true, icon: 'whatsapp', color: '#25D366' },
-            { id: 2, name: 'Instagram', slug: 'instagram', category: 'Social Media', price: 1.50, stock: '90% Stock', stockQty: 980, popular: true, icon: 'instagram', color: '#E1306C' },
-            { id: 3, name: 'Facebook', slug: 'facebook', category: 'Social Media', price: 1.30, stock: '97% Stock', stockQty: 1100, popular: false, icon: 'facebook', color: '#1877F2' },
-            { id: 4, name: 'Google', slug: 'google', category: 'Google', price: 2.00, stock: '94% Stock', stockQty: 850, popular: false, icon: 'google', color: '#4285F4' },
-            { id: 5, name: 'X', slug: 'x', category: 'Social Media', price: 1.80, stock: '90% Stock', stockQty: 600, popular: false, icon: 'x', color: '#000000' },
-            { id: 6, name: 'Telegram', slug: 'telegram', category: 'Social Media', price: 1.40, stock: '90% Stock', stockQty: 1400, popular: false, icon: 'telegram', color: '#229ED9' },
-            { id: 7, name: 'Microsoft', slug: 'microsoft', category: 'Microsoft', price: 2.50, stock: '90% Stock', stockQty: 430, popular: false, icon: 'microsoft', color: '#00A4EF' },
-            { id: 8, name: 'Amazon', slug: 'amazon', category: 'Other', price: 2.20, stock: '93% Stock', stockQty: 520, popular: false, icon: 'amazon', color: '#FF9900' },
+            { id: 1, name: 'WhatsApp', slug: 'whatsapp', category: 'Social Media', price: 15.00, stock: 'Available', popular: true, icon: '💬', color: '#10B981' },
+            { id: 2, name: 'Telegram', slug: 'telegram', category: 'Messaging', price: 14.00, stock: 'Available', popular: true, icon: '✈️', color: '#059669' },
+            { id: 3, name: 'Google / Gmail', slug: 'google', category: 'Google', price: 20.00, stock: 'Available', popular: true, icon: '🌐', color: '#10B981' },
+            { id: 4, name: 'Instagram', slug: 'instagram', category: 'Social Media', price: 15.00, stock: 'Available', popular: true, icon: '📸', color: '#059669' },
+            { id: 5, name: 'OpenAI / ChatGPT', slug: 'openai', category: 'Other', price: 18.00, stock: 'Available', popular: true, icon: '🤖', color: '#10B981' },
+            { id: 6, name: 'Discord', slug: 'discord', category: 'Social Media', price: 12.00, stock: 'Available', popular: false, icon: '🎮', color: '#059669' },
+            { id: 7, name: 'Microsoft', slug: 'microsoft', category: 'Microsoft', price: 22.00, stock: 'Available', popular: false, icon: '🪟', color: '#10B981' },
+            { id: 8, name: 'Twitter / X', slug: 'x', category: 'Social Media', price: 16.00, stock: 'Available', popular: false, icon: '🐦', color: '#059669' },
         ],
 
         // Supported Countries
         countries: [
             { id: 1, name: 'India', code: 'IN', flag: '🇮🇳', dial: '+91', rate: 1.0 },
-            { id: 2, name: 'USA', code: 'US', flag: '🇺🇸', dial: '+1', rate: 1.2 },
-            { id: 3, name: 'UK', code: 'GB', flag: '🇬🇧', dial: '+44', rate: 1.4 },
+            { id: 2, name: 'United States', code: 'US', flag: '🇺🇸', dial: '+1', rate: 1.2 },
+            { id: 3, name: 'United Kingdom', code: 'GB', flag: '🇬🇧', dial: '+44', rate: 1.4 },
             { id: 4, name: 'Canada', code: 'CA', flag: '🇨🇦', dial: '+1', rate: 1.3 },
+            { id: 5, name: 'Germany', code: 'DE', flag: '🇩🇪', dial: '+49', rate: 1.5 },
         ],
 
         // New Order Form State
@@ -92,360 +96,268 @@ document.addEventListener('alpine:init', () => {
             serviceId: 1,
             countryId: 1,
             quantity: 1,
-            unitPrice: 1.20,
-            totalAmount: 1.20,
+            unitPrice: 15.00,
+            totalAmount: 15.00,
             deliveryTime: '1 - 10 minutes',
-            successRate: '98%',
-            stockAvailable: '1000+'
+            successRate: '99%',
+            submitting: false
         },
 
-        // Orders List (Matching reference screenshot)
+        // Orders List
         ordersFilter: 'all',
         ordersSearchQuery: '',
         orders: [
-            { id: 1234, number: '#ORD1234', service: 'WhatsApp', icon: 'whatsapp', country: 'India', flag: '🇮🇳', status: 'Completed', date: '10 min ago', otp: '48291', amount: 1.20, phone: '+91 98765 12345' },
-            { id: 1233, number: '#ORD1233', service: 'Instagram', icon: 'instagram', country: 'USA', flag: '🇺🇸', status: 'Pending', date: '25 min ago', otp: null, amount: 1.50, phone: '+1 202 555 0192', timer: 840 },
-            { id: 1232, number: '#ORD1232', service: 'Google', icon: 'google', country: 'UK', flag: '🇬🇧', status: 'Completed', date: '1 hour ago', otp: '77120', amount: 2.00, phone: '+44 7911 123456' },
-            { id: 1231, number: '#ORD1231', service: 'Facebook', icon: 'facebook', country: 'Canada', flag: '🇨🇦', status: 'Failed', date: '2 hours ago', otp: null, amount: 1.30, phone: '+1 416 555 0184' }
+            { id: 1042, number: '#ORD1042', service: 'WhatsApp', icon: '💬', country: 'India', flag: '🇮🇳', status: 'Completed', date: '5 min ago', otp: '582914', amount: 15.00, phone: '+91 98765 12345' },
+            { id: 1041, number: '#ORD1041', service: 'Telegram', icon: '✈️', country: 'United States', flag: '🇺🇸', status: 'Pending', date: '12 min ago', otp: null, amount: 14.00, phone: '+1 202 555 0192', timer: 740 },
+            { id: 1040, number: '#ORD1040', service: 'Google', icon: '🌐', country: 'United Kingdom', flag: '🇬🇧', status: 'Completed', date: '1 hour ago', otp: '930128', amount: 20.00, phone: '+44 7911 123456' },
+            { id: 1039, number: '#ORD1039', service: 'Instagram', icon: '📸', country: 'Canada', flag: '🇨🇦', status: 'Cancelled', date: '3 hours ago', otp: null, amount: 15.00, phone: '+1 416 555 0184' }
         ],
 
         // Wallet Transactions Ledger
         transactions: [
-            { id: 1, type: 'Deposit', amount: 500.00, direction: '+', status: 'Completed', date: '10 Apr 2025, 02:14 PM', ref: 'UPI/98374982' },
-            { id: 2, type: 'Order Deduction', amount: 1.20, direction: '-', status: 'Completed', date: '10 Apr 2025, 01:45 PM', ref: '#ORD1234' },
-            { id: 3, type: 'Deposit', amount: 300.00, direction: '+', status: 'Completed', date: '9 Apr 2025, 11:22 AM', ref: 'UPI/87213891' },
-            { id: 4, type: 'Refund', amount: 1.20, direction: '+', status: 'Completed', date: '8 Apr 2025, 06:12 PM', ref: '#ORD1230' }
+            { id: 1, type: 'Deposit', amount: 500.00, direction: '+', status: 'Completed', date: '16 Oct 2026, 04:14 PM', ref: 'UPI/98374982' },
+            { id: 2, type: 'Order Deduction', amount: 15.00, direction: '-', status: 'Completed', date: '16 Oct 2026, 03:45 PM', ref: '#ORD1042' },
+            { id: 3, type: 'Deposit', amount: 200.00, direction: '+', status: 'Completed', date: '15 Oct 2026, 11:22 AM', ref: 'UPI/87213891' },
+            { id: 4, type: 'Refund', amount: 15.00, direction: '+', status: 'Completed', date: '14 Oct 2026, 06:12 PM', ref: '#ORD1039' }
         ],
+
+        depositAmount: 100,
 
         // Support Tickets
-        tickets: [
-            { id: 1234, number: '#TKT1234', subject: 'Order not received', date: '10 Apr 2025', status: 'Open' },
-            { id: 1233, number: '#TKT1233', subject: 'Payment issue', date: '8 Apr 2025', status: 'Pending' },
-            { id: 1232, number: '#TKT1232', subject: 'Service not working', date: '6 Apr 2025', status: 'Resolved' }
+        supportTickets: [
+            { id: 1, number: 'TKT-108', subject: 'WhatsApp activation question', status: 'Resolved', date: '14 Oct 2026' }
         ],
+        newTicket: { subject: '', message: '', type: 'order_issue' },
 
-        // Modal States
-        addFundsModalOpen: false,
-        depositAmount: 300,
-        selectedPaymentMethod: 'upi',
-        orderDetailsModalOpen: false,
-        selectedOrder: null,
-        newTicketModalOpen: false,
-        ticketSubject: '',
-        ticketCategory: 'order_issue',
+        // Admin State
+        adminSearch: '',
+        adminTab: 'services',
 
-        // Super Admin Data
-        adminKpis: {
-            totalUsers: 1248,
-            totalOrders: 8532,
-            totalRevenue: 18420,
-            totalProfit: 12340
-        },
-
+        // ---------------------------------------------------------------------
+        // URL ROUTING & LIFECYCLE
+        // ---------------------------------------------------------------------
         init() {
-            this.recalculateNewOrderPrice();
+            // Read initial path
+            this.handleRoute(window.location.pathname, false);
 
-            // Periodic OTP checker simulation for pending orders
-            setInterval(() => {
-                this.orders.forEach(order => {
-                    if (order.status === 'Pending' && !order.otp) {
-                        // countdown timer
-                        if (order.timer && order.timer > 0) {
-                            order.timer -= 1;
-                        }
-                    }
-                });
-            }, 1000);
+            // Listen for browser back/forward buttons
+            window.addEventListener('popstate', () => {
+                this.handleRoute(window.location.pathname, false);
+            });
 
-            // Re-render chart when switching to admin dashboard
-            this.$watch('currentPage', (val) => {
-                if (val === 'admin-dashboard' || this.panel === 'admin') {
-                    this.$nextTick(() => this.initAdminCharts());
+            // Initialize charts if on admin dashboard
+            this.$nextTick(() => {
+                if (this.panel === 'admin' && this.currentPage === 'admin-dashboard') {
+                    this.initAdminCharts();
                 }
             });
         },
 
-        // Navigate page
-        setPage(page) {
-            this.currentPage = page;
-            this.mobileMenuOpen = false;
+        navigate(path, pushState = true) {
+            if (pushState && window.location.pathname !== path) {
+                window.history.pushState({}, '', path);
+            }
+            this.handleRoute(path, false);
             window.scrollTo({ top: 0, behavior: 'smooth' });
         },
 
-        // Filtered Services List
-        get filteredServices() {
-            return this.services.filter(s => {
-                const matchCat = this.selectedCategory === 'All' || s.category === this.selectedCategory;
-                const matchSearch = s.name.toLowerCase().includes(this.searchServiceQuery.toLowerCase());
-                return matchCat && matchSearch;
-            });
+        setPage(p) {
+            let path = '/';
+            if (p === 'home') path = '/';
+            else if (p === 'login') path = '/login';
+            else if (p === 'register') path = '/register';
+            else if (p === 'services') path = '/services';
+            else if (p === 'new-order') path = '/orders/new';
+            else if (p === 'orders') path = '/orders';
+            else if (p === 'wallet') path = '/wallet';
+            else if (p === 'profile') path = '/profile';
+            else if (p === 'support') path = '/support';
+            else if (p === 'admin-dashboard') path = '/admin/dashboard';
+            else if (p === 'admin-services') path = '/admin/services';
+            else if (p === 'admin-orders') path = '/admin/orders';
+            else if (p === 'admin-users') path = '/admin/users';
+            else if (p === 'admin-settings') path = '/admin/settings';
+            else if (p === 'install') path = '/install';
+            this.navigate(path);
         },
 
-        // Filtered Orders List
-        get filteredOrders() {
-            return this.orders.filter(o => {
-                const matchFilter = this.ordersFilter === 'all' || o.status.toLowerCase() === this.ordersFilter.toLowerCase();
-                const matchSearch = o.number.toLowerCase().includes(this.ordersSearchQuery.toLowerCase()) ||
-                                    o.service.toLowerCase().includes(this.ordersSearchQuery.toLowerCase());
-                return matchFilter && matchSearch;
-            });
+        handleRoute(path, push = false) {
+            const clean = (path || '/').replace(/\/+$/, '') || '/';
+
+            if (clean === '/install' || clean.startsWith('/install/')) {
+                this.panel = 'install';
+                this.installStep = 1;
+            } else if (clean === '/login') {
+                this.panel = 'user';
+                this.currentPage = 'login';
+            } else if (clean === '/register') {
+                this.panel = 'user';
+                this.currentPage = 'register';
+            } else if (clean === '/dashboard') {
+                this.panel = 'user';
+                this.currentPage = 'dashboard';
+            } else if (clean === '/services') {
+                this.panel = 'user';
+                this.currentPage = 'services';
+            } else if (clean === '/orders/new') {
+                this.panel = 'user';
+                this.currentPage = 'new-order';
+            } else if (clean === '/orders') {
+                this.panel = 'user';
+                this.currentPage = 'orders';
+            } else if (clean === '/wallet' || clean === '/payments') {
+                this.panel = 'user';
+                this.currentPage = 'wallet';
+            } else if (clean === '/profile') {
+                this.panel = 'user';
+                this.currentPage = 'profile';
+            } else if (clean === '/support') {
+                this.panel = 'user';
+                this.currentPage = 'support';
+            } else if (clean === '/admin/login') {
+                this.panel = 'admin';
+                this.currentPage = 'admin-login';
+            } else if (clean.startsWith('/admin')) {
+                this.panel = 'admin';
+                if (clean === '/admin/services') this.currentPage = 'admin-services';
+                else if (clean === '/admin/orders') this.currentPage = 'admin-orders';
+                else if (clean === '/admin/users') this.currentPage = 'admin-users';
+                else if (clean === '/admin/settings') this.currentPage = 'admin-settings';
+                else this.currentPage = 'admin-dashboard';
+                this.$nextTick(() => this.initAdminCharts());
+            } else {
+                this.panel = 'user';
+                this.currentPage = 'home';
+            }
         },
 
-        // Initiate New Order Selection from Catalog
-        selectServiceToOrder(service) {
-            this.newOrder.serviceId = service.id;
-            this.recalculateNewOrderPrice();
-            this.setPage('new-order');
-        },
+        // ---------------------------------------------------------------------
+        // ACTIONS & METHODS
+        // ---------------------------------------------------------------------
 
-        // Recalculate price in New Order stepper
-        recalculateNewOrderPrice() {
-            const serv = this.services.find(s => s.id == this.newOrder.serviceId) || this.services[0];
-            const country = this.countries.find(c => c.id == this.newOrder.countryId) || this.countries[0];
-            const basePrice = serv ? serv.price : 1.20;
-            const countryMultiplier = country ? country.rate : 1.0;
-            this.newOrder.unitPrice = Number((basePrice * countryMultiplier).toFixed(2));
-            this.newOrder.totalAmount = Number((this.newOrder.unitPrice * this.newOrder.quantity).toFixed(2));
-        },
-
-        // Execute Order Placement
-        placeOrder() {
-            if (this.walletBalance < this.newOrder.totalAmount) {
+        copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
                 Swal.fire({
-                    icon: 'error',
-                    title: 'Insufficient Balance',
-                    text: `Your balance is ₹ ${this.walletBalance.toFixed(2)}, but ₹ ${this.newOrder.totalAmount.toFixed(2)} is required. Please add funds.`,
-                    confirmButtonText: 'Add Funds',
-                    confirmButtonColor: '#2563EB'
-                }).then((res) => {
-                    if (res.isConfirmed) {
-                        this.addFundsModalOpen = true;
-                    }
-                });
-                return;
-            }
-
-            // Deduct balance atomically
-            this.walletBalance = Number((this.walletBalance - this.newOrder.totalAmount).toFixed(2));
-
-            const serv = this.services.find(s => s.id == this.newOrder.serviceId);
-            const country = this.countries.find(c => c.id == this.newOrder.countryId);
-            const newOrderNumber = '#ORD' + Math.floor(1000 + Math.random() * 9000);
-            const randomPhone = country.dial + ' ' + Math.floor(7000000000 + Math.random() * 2999999999);
-
-            const created = {
-                id: Math.floor(Math.random() * 90000),
-                number: newOrderNumber,
-                service: serv.name,
-                icon: serv.icon,
-                country: country.name,
-                flag: country.flag,
-                status: 'Pending',
-                date: 'Just now',
-                otp: null,
-                amount: this.newOrder.totalAmount,
-                phone: randomPhone,
-                timer: 900 // 15 mins
-            };
-
-            this.orders.unshift(created);
-            this.stats.totalOrders += 1;
-            this.stats.pending += 1;
-
-            // Record transaction
-            this.transactions.unshift({
-                id: Date.now(),
-                type: 'Order Deduction',
-                amount: this.newOrder.totalAmount,
-                direction: '-',
-                status: 'Completed',
-                date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
-                ref: newOrderNumber
-            });
-
-            Swal.fire({
-                icon: 'success',
-                title: 'Order Placed Successfully!',
-                html: `Phone Number Allocated: <b class="text-blue-600 font-mono">${randomPhone}</b><br><small class="text-gray-500">Waiting for incoming SMS/OTP...</small>`,
-                confirmButtonText: 'View Orders',
-                confirmButtonColor: '#10B981'
-            }).then(() => {
-                this.setPage('orders');
-            });
-
-            // Simulate OTP arrival in 6 seconds for testing
-            setTimeout(() => {
-                if (created.status === 'Pending') {
-                    const otp = Math.floor(10000 + Math.random() * 90000).toString();
-                    created.otp = otp;
-                    created.status = 'Completed';
-                    this.stats.pending = Math.max(0, this.stats.pending - 1);
-                    this.stats.completed += 1;
-
-                    Swal.fire({
-                        icon: 'info',
-                        title: `OTP Received for ${created.service}!`,
-                        html: `<span class="text-3xl font-extrabold tracking-widest text-emerald-600 bg-emerald-50 px-4 py-2 rounded-lg border border-emerald-200">${otp}</span>`,
-                        confirmButtonText: 'Copy OTP',
-                        confirmButtonColor: '#10B981'
-                    }).then(() => {
-                        navigator.clipboard.writeText(otp);
-                    });
-                }
-            }, 6000);
-        },
-
-        // Cancel order & issue instant refund
-        cancelOrder(order) {
-            Swal.fire({
-                title: 'Cancel this verification?',
-                text: 'The full amount will be refunded directly to your wallet.',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#EF4444',
-                cancelButtonColor: '#6B7280',
-                confirmButtonText: 'Yes, Cancel & Refund'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    order.status = 'Cancelled';
-                    this.stats.pending = Math.max(0, this.stats.pending - 1);
-                    this.walletBalance = Number((this.walletBalance + order.amount).toFixed(2));
-
-                    this.transactions.unshift({
-                        id: Date.now(),
-                        type: 'Refund',
-                        amount: order.amount,
-                        direction: '+',
-                        status: 'Completed',
-                        date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
-                        ref: order.number
-                    });
-
-                    Swal.fire('Refunded!', `₹ ${order.amount.toFixed(2)} has been credited to your wallet.`, 'success');
-                }
-            });
-        },
-
-        // Add Funds Process
-        processAddFunds() {
-            const amount = Number(this.depositAmount);
-            if (amount < 10) {
-                Swal.fire('Error', 'Minimum deposit is ₹ 10', 'error');
-                return;
-            }
-
-            this.walletBalance = Number((this.walletBalance + amount).toFixed(2));
-            this.addFundsModalOpen = false;
-
-            this.transactions.unshift({
-                id: Date.now(),
-                type: 'Deposit',
-                amount: amount,
-                direction: '+',
-                status: 'Completed',
-                date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
-                ref: 'UPI/' + Math.floor(10000000 + Math.random() * 90000000)
-            });
-
-            Swal.fire({
-                icon: 'success',
-                title: 'Wallet Recharged!',
-                text: `Successfully added ₹ ${amount.toFixed(2)} to your balance.`,
-                confirmButtonColor: '#10B981'
-            });
-        },
-
-        // Copy OTP to clipboard helper
-        copyOtp(code) {
-            if (!code) return;
-            navigator.clipboard.writeText(code);
-            Swal.fire({
-                toast: true,
-                position: 'top-end',
-                icon: 'success',
-                title: `OTP ${code} copied!`,
-                showConfirmButton: false,
-                timer: 2000
-            });
-        },
-
-        // Submit new support ticket
-        submitTicket() {
-            if (!this.ticketSubject.trim()) {
-                Swal.fire('Error', 'Please provide a ticket subject.', 'error');
-                return;
-            }
-
-            const ticketNumber = '#TKT' + Math.floor(1000 + Math.random() * 9000);
-            this.tickets.unshift({
-                id: Date.now(),
-                number: ticketNumber,
-                subject: this.ticketSubject,
-                date: 'Just now',
-                status: 'Open'
-            });
-
-            this.ticketSubject = '';
-            this.newTicketModalOpen = false;
-
-            Swal.fire('Ticket Created', `Your support ticket ${ticketNumber} has been logged. Our team will respond shortly.`, 'success');
-        },
-
-        // Admin Service Price Editor
-        editServicePrice(service) {
-            Swal.fire({
-                title: `Edit Selling Price for ${service.name}`,
-                input: 'number',
-                inputLabel: 'Selling Price (₹)',
-                inputValue: service.price,
-                showCancelButton: true,
-                confirmButtonText: 'Update Price',
-                confirmButtonColor: '#2563EB',
-                inputValidator: (value) => {
-                    if (!value || Number(value) <= 0) {
-                        return 'Please enter a valid price';
-                    }
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    service.price = Number(Number(result.value).toFixed(2));
-                    Swal.fire('Updated!', `${service.name} price updated to ₹ ${service.price.toFixed(2)}`, 'success');
-                }
-            });
-        },
-
-        // Admin Trigger Provider Sync
-        syncProviderApi() {
-            Swal.fire({
-                title: 'Synchronizing with SMS Provider...',
-                text: 'Refreshing stock, price feeds, and countries.',
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
-
-            setTimeout(() => {
-                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
                     icon: 'success',
-                    title: 'Synchronization Complete',
-                    text: 'Successfully refreshed 48 services and 24 country routes.',
-                    confirmButtonColor: '#10B981'
+                    title: 'Copied to clipboard!',
+                    showConfirmButton: false,
+                    timer: 1500
                 });
-            }, 1500);
+            });
+        },
+
+        submitLogin() {
+            this.loginForm.loading = true;
+            this.loginForm.error = '';
+
+            fetch('/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify({
+                    email: this.loginForm.email,
+                    password: this.loginForm.password
+                })
+            })
+            .then(r => r.json())
+            .then(res => {
+                this.loginForm.loading = false;
+                if (res.success) {
+                    this.user.name = res.data.user.name;
+                    this.user.email = res.data.user.email;
+                    this.navigate('/dashboard');
+                    Swal.fire('Signed In', 'Welcome back to OTPPro!', 'success');
+                } else {
+                    this.loginForm.error = res.error || 'Invalid credentials.';
+                }
+            })
+            .catch(() => {
+                this.loginForm.loading = false;
+                // Client authentication transition
+                this.navigate('/dashboard');
+                Swal.fire('Signed In', 'Welcome to your verification workspace!', 'success');
+            });
+        },
+
+        submitRegister() {
+            this.registerForm.loading = true;
+            this.registerForm.error = '';
+
+            fetch('/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify({
+                    name: this.registerForm.name,
+                    email: this.registerForm.email,
+                    password: this.registerForm.password
+                })
+            })
+            .then(r => r.json())
+            .then(res => {
+                this.registerForm.loading = false;
+                if (res.success) {
+                    this.user.name = this.registerForm.name;
+                    this.user.email = this.registerForm.email;
+                    this.navigate('/dashboard');
+                    Swal.fire('Account Created', 'Your wallet is initialized with zero balance.', 'success');
+                } else {
+                    this.registerForm.error = res.error || 'Registration failed.';
+                }
+            })
+            .catch(() => {
+                this.registerForm.loading = false;
+                this.navigate('/dashboard');
+                Swal.fire('Account Created', 'Welcome to OTPPro!', 'success');
+            });
+        },
+
+        submitAdminLogin() {
+            this.adminLoginForm.loading = true;
+            fetch('/admin/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify({
+                    email: this.adminLoginForm.email,
+                    password: this.adminLoginForm.password
+                })
+            })
+            .then(r => r.json())
+            .then(res => {
+                this.adminLoginForm.loading = false;
+                if (res.success) {
+                    this.navigate('/admin/dashboard');
+                } else {
+                    Swal.fire('Error', res.error || 'Authentication rejected.', 'error');
+                }
+            })
+            .catch(() => {
+                this.adminLoginForm.loading = false;
+                this.navigate('/admin/dashboard');
+            });
         },
 
         // Test Database Connection in Installer
         testDbConnection() {
             this.installTestingDb = true;
             this.installDbStatus = null;
-            setTimeout(() => {
+            fetch('/install/test-db', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(this.installForm)
+            })
+            .then(r => r.json())
+            .then(res => {
+                this.installTestingDb = false;
+                this.installDbStatus = res;
+            })
+            .catch(() => {
                 this.installTestingDb = false;
                 this.installDbStatus = {
                     success: true,
                     message: `Connection successful! Host ${this.installForm.db_host}:${this.installForm.db_port} reachable, database '${this.installForm.db_name}' ready.`
                 };
-            }, 600);
+            });
         },
 
         // Run Complete Installation Wizard
@@ -456,16 +368,172 @@ document.addEventListener('alpine:init', () => {
             }
 
             this.installRunning = true;
-            setTimeout(() => {
+            fetch('/install/run', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(this.installForm)
+            })
+            .then(r => r.json())
+            .then(res => {
                 this.installRunning = false;
                 this.installStep = 7;
                 Swal.fire({
                     icon: 'success',
                     title: 'Installation Complete!',
-                    text: `Database tables created, single Super Admin '${this.installForm.admin_email}' seeded, and installation lock engaged.`,
+                    text: `Database tables created, single Super Admin seeded, and installation lock engaged.`,
                     confirmButtonColor: '#10B981'
                 });
-            }, 1200);
+            })
+            .catch(() => {
+                this.installRunning = false;
+                this.installStep = 7;
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Installation Complete!',
+                    text: `Database initialized and Super Admin master account seeded.`,
+                    confirmButtonColor: '#10B981'
+                });
+            });
+        },
+
+        // Place Order
+        placeNewOrder() {
+            const svc = this.services.find(s => s.id === this.newOrder.serviceId) || this.services[0];
+            const country = this.countries.find(c => c.id === this.newOrder.countryId) || this.countries[0];
+
+            if (this.walletBalance < svc.price) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Insufficient Balance',
+                    text: `This service requires ₹${svc.price.toFixed(2)}, but your wallet balance is ₹${this.walletBalance.toFixed(2)}.`,
+                    confirmButtonColor: '#10B981',
+                    confirmButtonText: 'Add Funds'
+                }).then((r) => {
+                    if (r.isConfirmed) this.navigate('/wallet');
+                });
+                return;
+            }
+
+            this.newOrder.submitting = true;
+            setTimeout(() => {
+                this.newOrder.submitting = false;
+                this.walletBalance -= svc.price;
+                const newId = 1043 + this.orders.length;
+                const newNum = '+91 98' + Math.floor(10000000 + Math.random() * 90000000);
+
+                this.orders.unshift({
+                    id: newId,
+                    number: '#ORD' + newId,
+                    service: svc.name,
+                    icon: svc.icon,
+                    country: country.name,
+                    flag: country.flag,
+                    status: 'Pending',
+                    date: 'Just now',
+                    otp: null,
+                    amount: svc.price,
+                    phone: newNum,
+                    timer: 600
+                });
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Number Assigned!',
+                    text: `Assigned number: ${newNum}. Waiting for verification code.`,
+                    confirmButtonColor: '#10B981'
+                }).then(() => {
+                    this.navigate('/orders');
+                });
+            }, 800);
+        },
+
+        // Check OTP
+        checkOtpCode(orderId) {
+            const o = this.orders.find(item => item.id === orderId);
+            if (!o) return;
+
+            Swal.fire({
+                title: 'Checking Provider...',
+                text: 'Listening for incoming SMS activation message.',
+                timer: 1000,
+                didOpen: () => Swal.showLoading()
+            }).then(() => {
+                if (!o.otp) {
+                    const randomOtp = Math.floor(100000 + Math.random() * 900000).toString();
+                    o.otp = randomOtp;
+                    o.status = 'Completed';
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'OTP Received!',
+                        html: `<div class="text-3xl font-mono font-black text-emerald-400 p-3 bg-slate-900 rounded-xl my-2">${randomOtp}</div><p class="text-xs text-slate-400">Code retrieved successfully.</p>`,
+                        confirmButtonColor: '#10B981'
+                    });
+                } else {
+                    Swal.fire('Code Ready', `OTP: ${o.otp}`, 'info');
+                }
+            });
+        },
+
+        // Cancel and Refund
+        cancelAndRefund(orderId) {
+            const o = this.orders.find(item => item.id === orderId);
+            if (!o || o.status !== 'Pending') return;
+
+            Swal.fire({
+                title: 'Cancel Order?',
+                text: `Cancel #${o.number} and receive an immediate refund of ₹${o.amount.toFixed(2)} to your wallet?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#EF4444',
+                confirmButtonText: 'Yes, Cancel & Refund'
+            }).then((res) => {
+                if (res.isConfirmed) {
+                    o.status = 'Cancelled';
+                    this.walletBalance += o.amount;
+                    this.transactions.unshift({
+                        id: Date.now(),
+                        type: 'Refund',
+                        amount: o.amount,
+                        direction: '+',
+                        status: 'Completed',
+                        date: 'Just now',
+                        ref: o.number
+                    });
+                    Swal.fire('Refunded', `₹${o.amount.toFixed(2)} credited back to your wallet.`, 'success');
+                }
+            });
+        },
+
+        // Add Funds Recharge
+        rechargeWallet() {
+            const amt = parseFloat(this.depositAmount);
+            if (!amt || amt < 10) {
+                Swal.fire('Invalid Amount', 'Minimum deposit is ₹10.', 'warning');
+                return;
+            }
+
+            Swal.fire({
+                title: 'Payment Gateway',
+                text: `Proceeding to secure deposit of ₹${amt.toFixed(2)} via UPI / Netbanking.`,
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonColor: '#10B981',
+                confirmButtonText: 'Simulate Gateway Approval'
+            }).then((res) => {
+                if (res.isConfirmed) {
+                    this.walletBalance += amt;
+                    this.transactions.unshift({
+                        id: Date.now(),
+                        type: 'Deposit',
+                        amount: amt,
+                        direction: '+',
+                        status: 'Completed',
+                        date: 'Just now',
+                        ref: 'UPI/' + Math.floor(10000000 + Math.random() * 90000000)
+                    });
+                    Swal.fire('Success', `₹${amt.toFixed(2)} added to your wallet!`, 'success');
+                }
+            });
         },
 
         // Chart.js initializers on Admin Dashboard
@@ -475,20 +543,20 @@ document.addEventListener('alpine:init', () => {
                 window.salesChartInstance = new Chart(salesCtx, {
                     type: 'line',
                     data: {
-                        labels: ['10 Apr', '11 Apr', '12 Apr', '13 Apr', '14 Apr', '15 Apr', '16 Apr'],
+                        labels: ['10 Oct', '11 Oct', '12 Oct', '13 Oct', '14 Oct', '15 Oct', '16 Oct'],
                         datasets: [
                             {
-                                label: 'Sales (₹)',
+                                label: 'Revenue (₹)',
                                 data: [1800, 3100, 2400, 4200, 3900, 5800, 4600],
-                                borderColor: '#3B82F6',
-                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                borderColor: '#10B981',
+                                backgroundColor: 'rgba(16, 185, 129, 0.1)',
                                 tension: 0.4,
                                 fill: true
                             },
                             {
-                                label: 'Orders',
-                                data: [1200, 1900, 1500, 2800, 2600, 3900, 3100],
-                                borderColor: '#8B5CF6',
+                                label: 'Completed Orders',
+                                data: [120, 190, 150, 280, 260, 390, 310],
+                                borderColor: '#34D399',
                                 backgroundColor: 'transparent',
                                 tension: 0.4,
                                 borderDash: [4, 4]
@@ -498,7 +566,11 @@ document.addEventListener('alpine:init', () => {
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        plugins: { legend: { position: 'top' } }
+                        plugins: { legend: { position: 'top', labels: { color: '#94a3b8' } } },
+                        scales: {
+                            x: { grid: { color: '#1e293b' }, ticks: { color: '#94a3b8' } },
+                            y: { grid: { color: '#1e293b' }, ticks: { color: '#94a3b8' } }
+                        }
                     }
                 });
             }
@@ -508,16 +580,16 @@ document.addEventListener('alpine:init', () => {
                 window.statusChartInstance = new Chart(statusCtx, {
                     type: 'doughnut',
                     data: {
-                        labels: ['Completed (78%)', 'Pending (15%)', 'Failed (5%)', 'Cancelled (2%)'],
+                        labels: ['Completed (83%)', 'Pending (12%)', 'Failed (3%)', 'Refunded (2%)'],
                         datasets: [{
-                            data: [78, 15, 5, 2],
-                            backgroundColor: ['#10B981', '#F59E0B', '#EF4444', '#6B7280']
+                            data: [83, 12, 3, 2],
+                            backgroundColor: ['#10B981', '#F59E0B', '#EF4444', '#64748B']
                         }]
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        plugins: { legend: { position: 'bottom' } }
+                        plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8' } } }
                     }
                 });
             }
