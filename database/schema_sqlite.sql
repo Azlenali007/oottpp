@@ -1,0 +1,269 @@
+-- SQLite 3 Compatible Testing Schema for CI / Local Tests
+PRAGMA foreign_keys = ON;
+
+DROP TABLE IF EXISTS settings;
+DROP TABLE IF EXISTS sync_logs;
+DROP TABLE IF EXISTS admin_audit_logs;
+DROP TABLE IF EXISTS support_tickets;
+DROP TABLE IF EXISTS notifications;
+DROP TABLE IF EXISTS webhook_events;
+DROP TABLE IF EXISTS refunds;
+DROP TABLE IF EXISTS payments;
+DROP TABLE IF EXISTS orders;
+DROP TABLE IF EXISTS provider_services;
+DROP TABLE IF EXISTS countries;
+DROP TABLE IF EXISTS services;
+DROP TABLE IF EXISTS providers;
+DROP TABLE IF EXISTS wallet_transactions;
+DROP TABLE IF EXISTS wallets;
+DROP TABLE IF EXISTS users;
+
+CREATE TABLE users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  email TEXT NOT NULL UNIQUE,
+  phone TEXT DEFAULT NULL,
+  password_hash TEXT NOT NULL,
+  role TEXT NOT NULL DEFAULT 'user',
+  status TEXT NOT NULL DEFAULT 'active',
+  two_factor_secret TEXT DEFAULT NULL,
+  two_factor_enabled INTEGER NOT NULL DEFAULT 0,
+  email_verified_at DATETIME DEFAULT NULL,
+  last_login_at DATETIME DEFAULT NULL,
+  last_login_ip TEXT DEFAULT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE wallets (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL UNIQUE,
+  balance NUMERIC NOT NULL DEFAULT 0.0000,
+  currency TEXT NOT NULL DEFAULT 'INR',
+  locked_balance NUMERIC NOT NULL DEFAULT 0.0000,
+  total_deposited NUMERIC NOT NULL DEFAULT 0.0000,
+  total_spent NUMERIC NOT NULL DEFAULT 0.0000,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE wallet_transactions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  wallet_id INTEGER NOT NULL,
+  user_id INTEGER NOT NULL,
+  transaction_uuid TEXT NOT NULL UNIQUE,
+  type TEXT NOT NULL,
+  amount NUMERIC NOT NULL,
+  balance_before NUMERIC NOT NULL,
+  balance_after NUMERIC NOT NULL,
+  reference_id TEXT DEFAULT NULL,
+  reference_type TEXT DEFAULT NULL,
+  description TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'completed',
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (wallet_id) REFERENCES wallets(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE providers (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  code TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL,
+  api_url TEXT NOT NULL,
+  api_key_encrypted TEXT DEFAULT NULL,
+  is_active INTEGER NOT NULL DEFAULT 1,
+  priority INTEGER NOT NULL DEFAULT 1,
+  balance NUMERIC NOT NULL DEFAULT 0.0000,
+  currency TEXT NOT NULL DEFAULT 'USD',
+  last_synced_at DATETIME DEFAULT NULL,
+  last_status_check DATETIME DEFAULT NULL,
+  is_healthy INTEGER NOT NULL DEFAULT 1,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE services (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  slug TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL,
+  category TEXT NOT NULL DEFAULT 'Social Media',
+  icon TEXT DEFAULT NULL,
+  description TEXT DEFAULT NULL,
+  is_active INTEGER NOT NULL DEFAULT 1,
+  is_popular INTEGER NOT NULL DEFAULT 0,
+  default_selling_price NUMERIC NOT NULL DEFAULT 1.0000,
+  delivery_time_est TEXT NOT NULL DEFAULT '1 - 10 minutes',
+  success_rate_est NUMERIC NOT NULL DEFAULT 98.00,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE countries (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  iso_code TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL,
+  dial_code TEXT NOT NULL,
+  flag_emoji TEXT DEFAULT NULL,
+  is_active INTEGER NOT NULL DEFAULT 1,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE provider_services (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  provider_id INTEGER NOT NULL,
+  service_id INTEGER NOT NULL,
+  country_id INTEGER NOT NULL,
+  provider_service_code TEXT NOT NULL,
+  provider_cost NUMERIC NOT NULL DEFAULT 0.0000,
+  selling_price NUMERIC NOT NULL DEFAULT 0.0000,
+  stock_status TEXT NOT NULL DEFAULT 'unknown',
+  stock_quantity INTEGER NOT NULL DEFAULT 0,
+  is_active INTEGER NOT NULL DEFAULT 1,
+  last_synced_at DATETIME DEFAULT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE (provider_id, service_id, country_id),
+  FOREIGN KEY (provider_id) REFERENCES providers(id) ON DELETE CASCADE,
+  FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE CASCADE,
+  FOREIGN KEY (country_id) REFERENCES countries(id) ON DELETE CASCADE
+);
+
+CREATE TABLE orders (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  order_number TEXT NOT NULL UNIQUE,
+  user_id INTEGER NOT NULL,
+  service_id INTEGER NOT NULL,
+  country_id INTEGER NOT NULL,
+  provider_id INTEGER NOT NULL,
+  provider_service_id INTEGER DEFAULT NULL,
+  provider_order_id TEXT DEFAULT NULL,
+  phone_number TEXT DEFAULT NULL,
+  otp_code TEXT DEFAULT NULL,
+  full_sms_text TEXT DEFAULT NULL,
+  unit_price NUMERIC NOT NULL,
+  provider_cost NUMERIC NOT NULL DEFAULT 0.0000,
+  quantity INTEGER NOT NULL DEFAULT 1,
+  total_amount NUMERIC NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending',
+  expires_at DATETIME NOT NULL,
+  completed_at DATETIME DEFAULT NULL,
+  cancelled_at DATETIME DEFAULT NULL,
+  cancellation_reason TEXT DEFAULT NULL,
+  retry_count INTEGER NOT NULL DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (service_id) REFERENCES services(id),
+  FOREIGN KEY (country_id) REFERENCES countries(id),
+  FOREIGN KEY (provider_id) REFERENCES providers(id)
+);
+
+CREATE TABLE payments (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  payment_uuid TEXT NOT NULL UNIQUE,
+  user_id INTEGER NOT NULL,
+  gateway TEXT NOT NULL,
+  gateway_transaction_id TEXT DEFAULT NULL,
+  amount NUMERIC NOT NULL,
+  fee NUMERIC NOT NULL DEFAULT 0.0000,
+  net_amount NUMERIC NOT NULL,
+  currency TEXT NOT NULL DEFAULT 'INR',
+  status TEXT NOT NULL DEFAULT 'pending',
+  idempotency_key TEXT NOT NULL UNIQUE,
+  raw_payload TEXT DEFAULT NULL,
+  verified_at DATETIME DEFAULT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE refunds (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  refund_uuid TEXT NOT NULL UNIQUE,
+  order_id INTEGER NOT NULL UNIQUE,
+  user_id INTEGER NOT NULL,
+  wallet_transaction_id INTEGER DEFAULT NULL,
+  amount NUMERIC NOT NULL,
+  reason TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'completed',
+  processed_by_user_id INTEGER DEFAULT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE webhook_events (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  source TEXT NOT NULL,
+  event_id TEXT NOT NULL,
+  event_type TEXT NOT NULL,
+  payload TEXT NOT NULL,
+  is_processed INTEGER NOT NULL DEFAULT 0,
+  processed_at DATETIME DEFAULT NULL,
+  error_message TEXT DEFAULT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE (source, event_id)
+);
+
+CREATE TABLE notifications (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL,
+  title TEXT NOT NULL,
+  message TEXT NOT NULL,
+  type TEXT NOT NULL DEFAULT 'info',
+  is_read INTEGER NOT NULL DEFAULT 0,
+  action_url TEXT DEFAULT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE support_tickets (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  ticket_number TEXT NOT NULL UNIQUE,
+  user_id INTEGER NOT NULL,
+  subject TEXT NOT NULL,
+  category TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'open',
+  priority TEXT NOT NULL DEFAULT 'medium',
+  last_reply_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE admin_audit_logs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  admin_user_id INTEGER NOT NULL,
+  action TEXT NOT NULL,
+  target_type TEXT DEFAULT NULL,
+  target_id TEXT DEFAULT NULL,
+  details TEXT DEFAULT NULL,
+  ip_address TEXT NOT NULL,
+  user_agent TEXT DEFAULT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE sync_logs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  provider_id INTEGER NOT NULL,
+  sync_type TEXT NOT NULL,
+  items_synced INTEGER NOT NULL DEFAULT 0,
+  items_updated INTEGER NOT NULL DEFAULT 0,
+  status TEXT NOT NULL,
+  error_message TEXT DEFAULT NULL,
+  execution_time_ms INTEGER NOT NULL DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE settings (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  setting_key TEXT NOT NULL UNIQUE,
+  setting_value TEXT DEFAULT NULL,
+  setting_group TEXT NOT NULL DEFAULT 'general',
+  is_secret INTEGER NOT NULL DEFAULT 0,
+  description TEXT DEFAULT NULL,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);

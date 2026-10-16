@@ -1,0 +1,6 @@
+{
+  "name": "OTPPro - Verification Service Marketplace",
+  "description": "Production-grade OTP service marketplace with mobile-first User Panel and Super Admin Panel.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

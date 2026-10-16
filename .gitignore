@@ -1,0 +1,26 @@
+# Environment files
+.env
+.env.backup
+.env.local
+
+# Storage and runtime files
+storage/logs/*.log
+storage/cache/*
+storage/database/*.sqlite
+storage/database/*.sqlite-journal
+!storage/logs/.gitkeep
+!storage/cache/.gitkeep
+!storage/database/.gitkeep
+
+# System and editor files
+.DS_Store
+Thumbs.db
+*.sublime-workspace
+.vscode/
+.idea/
+
+# Database dumps and backups
+database/*.sql.gz
+database/backups/
+*.dump
+*.sql.bak
